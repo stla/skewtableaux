@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+man/
+NAMESPACE
+inst/libs/
+skewtableaux.Rproj

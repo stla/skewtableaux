@@ -1,0 +1,16 @@
+resolver: lts-9.3
+
+packages:
+- .
+
+extra-deps:
+- combinat-0.2.8.2
+
+flags: {}
+
+extra-package-dbs: []
+
+extra-include-dirs:
+- C:\PortableApps\R-portable_3.3.3\App\R-Portable\include
+extra-lib-dirs:
+- C:\PortableApps\R-portable_3.3.3\App\R-Portable\bin\x64

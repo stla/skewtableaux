@@ -1,0 +1,25 @@
+name:                skewtableaux
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/stla/skewtableaux#readme
+license:             GPL3
+author:              Stéphane Laurent
+maintainer:          laurent_step@yahoo.fr
+copyright:           2017 Stéphane Laurent
+category:            Math
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     SkewTableaux
+  build-depends:       base >= 4.7 && < 5,
+                       inline-r,
+                       combinat
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/stla/skewtableaux
