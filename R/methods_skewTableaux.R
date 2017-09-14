@@ -36,8 +36,13 @@ skewtableau <- function(...){
     stop("Invalid input.")
   }
   rlist <- rapply(rlist, as.integer, how="replace")
+  valid <- .isValidSkewTableau(rlist)
+  if(!valid){
+    warning("The shape of this skew tableau is not valid.")
+  }
   rlist <- lapply(rlist, function(row) setNames(row, c("offset", "entries")))
   class(rlist) <- "skewtableau"
+  attr(rlist, "valid") <- as.logical(valid)
   rlist
 }
 

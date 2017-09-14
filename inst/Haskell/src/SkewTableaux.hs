@@ -14,6 +14,7 @@ import           Math.Combinat.Partitions.Integer
 import           Math.Combinat.Partitions.Skew
 import           Math.Combinat.Tableaux.Skew
 
+--- ~# Partitions #~ ---
 
 importPartition :: Ptr (SEXP s R.Int) -> IO (Partition)
 importPartition partition = do
@@ -35,24 +36,83 @@ isSubPartitionOfR partition1 partition2 result = do
   partition2 <- importPartition partition2
   poke result $ bool 0 1 (isSubPartitionOf partition1 partition2)
 
+foreign export ccall mkPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> IO ()
+mkPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> IO ()
+mkPartitionR partition result = do
+  partition <- importPartition partition
+  poke result $
+    (VS.toSEXP . VS.fromList) (map fromIntegral (fromPartition partition) :: [Int32])
+
 --- ~# Skew Partitions #~ ---
 
-rListToSkewPartiton :: Ptr (SEXP s R.Int) -> Ptr CInt -> IO (SkewPartition)
-rListToSkewPartiton rlist l = do
+-- we can't apply fromSkewPartition to an invalid SkewPartition
+isValidSkewPartition :: SkewPartition -> Bool
+isValidSkewPartition (SkewPartition list) =
+  isPartition outer && isPartition inner && isSubPartitionOf (toPartition inner) (toPartition outer)
+  where
+    (outer, inner) = (zipWith (+) as bs , filter (>0) as)
+    (as,bs) = unzip list
+
+foreign export ccall isValidSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CInt -> IO ()
+isValidSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CInt -> IO ()
+isValidSkewPartitionR _outer _inner result = do
+  _outer <- peek _outer
+  _inner <- peek _inner
+  let outer = (map fromIntegral ((VS.toList . VS.fromSEXP) _outer) :: [Int])
+  let inner = (map fromIntegral ((VS.toList . VS.fromSEXP) _inner) :: [Int])
+  poke result $
+    bool 0 1 $
+      isPartition outer && isPartition inner && isSubPartitionOf (toPartition inner) (toPartition outer)
+
+rListToSkewPartition :: Ptr (SEXP s R.Int) -> Ptr CInt -> IO (SkewPartition)
+rListToSkewPartition rlist l = do
   l <- peek l
   rlist <- peekArray (fromIntegral l :: Int) rlist
   return $ SkewPartition $
             map (\[x,y] -> ((fromIntegral x :: Int), (fromIntegral y :: Int)))
               (map (VS.toList . VS.fromSEXP) rlist)
 
+-- skewPartitionToR :: SkewPartition -> IO (SEXP s R.Vector)
+-- skewPartitionToR (SkewPartition skewpartition) = do
+--   let rlist = map (\(x,y) -> [(fromIntegral x :: Int32), (fromIntegral y :: Int32)])
+--                 skewpartition
+--   mkProtectedSEXPVectorIO sing $
+--                  (map (VS.toSEXP . VS.fromList) rlist :: [SEXP s R.Int])
 skewPartitionToR :: SkewPartition -> IO (SEXP s R.Vector)
-skewPartitionToR (SkewPartition skewpartition) = do
-  let rlist = map (\(x,y) -> [(fromIntegral x :: Int32), (fromIntegral y :: Int32)])
-                skewpartition
-  mkProtectedSEXPVectorIO sing $
-                 (map (VS.toSEXP . VS.fromList) rlist :: [SEXP s R.Int])
+skewPartitionToR skewpartition = do
+  let (_outer, _inner) = fromSkewPartition skewpartition
+  let outer = (VS.toSEXP . VS.fromList) (map fromIntegral (fromPartition _outer) :: [Int32]) :: SEXP s R.Int
+  let inner = (VS.toSEXP . VS.fromList) (map fromIntegral (fromPartition _inner) :: [Int32]) :: SEXP s R.Int
+  mkProtectedSEXPVectorIO sing [outer, inner]
+
+showSkewPartition :: Partition -> Partition -> String
+showSkewPartition outer inner =
+  "SkewPartition " ++ (show $ fromPartition outer) ++ " \\ " ++ (show $ fromPartition inner)
+
+foreign export ccall showSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CString -> IO ()
+showSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CString -> IO ()
+showSkewPartitionR outer inner result = do
+  outer <- importPartition outer
+  inner <- importPartition inner
+  (>>=) (newCString $ showSkewPartition outer inner) (poke result)
 
 --- ~# Skew Tableaux #~ ---
+
+isValidSkewTableau :: SkewTableau a -> Bool
+isValidSkewTableau = isValidSkewPartition . skewTableauShape
+
+foreign export ccall isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
+isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
+isValidSkewTableauR rlist l result = do
+  skewtableau <- rListToSkewTableau rlist l
+  poke result $ bool 0 1 (isValidSkewTableau skewtableau)
+
+foreign export ccall skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
+skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
+skewTableauShapeR rlist l result = do
+  skewTableau <- rListToSkewTableau rlist l
+  let shape = skewTableauShape skewTableau
+  (>>=) (skewPartitionToR shape) (poke result)
 
 someSexpToSint :: SomeSEXP s -> SEXP s R.Int
 someSexpToSint someSexpToSint = cast sing someSexpToSint

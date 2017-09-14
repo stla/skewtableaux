@@ -33,6 +33,34 @@ dualSkewTableau <- function(skewtab){
     skewtab <- as.skewtableau(skewtab)
   }
   dskewtab <- .dualSkewTableau(skewtab)
+  attr(dskewtab, "valid") <- attr(skewtab, "valid")
   class(dskewtab) <- "skewtableau"
   dskewtab
+}
+
+#' Shape of a skew tableau
+#'
+#' Returns the shape of a skew tableau.
+#'
+#' @param skewtab a (valid) skewtableau (object having class \code{\link{skewtableau}} or
+#' that can be coerced to such an object)
+#'
+#' @return A skew partition (class \code{\link{skewpartition}}).
+#' @export
+#'
+#' @examples
+#' skewtab <- skewtableau(list(3,c(1,1)), list(1,c(2,3)))
+#' skewTableauShape(skewtab)
+skewTableauShape <- function(skewtab){
+  if(!is.skewtableau(skewtab)){
+    skewtab <- as.skewtableau(skewtab)
+  }
+  if(attr(skewtab, "valid")){
+    skewpart <- .skewTableauShape(skewtab)
+    names(skewpart) <- c("outer", "inner")
+    class(skewpart) <- "skewpartition"
+    return(skewpart)
+  }else{
+    stop("Invalid skew tableau.")
+  }
 }
