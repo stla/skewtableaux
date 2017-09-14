@@ -31,9 +31,9 @@ checkSkewPartition <- function(outer, inner){
 #' outer and inner partitions.
 #'
 #' @examples
-#' st <- skewpartition(c(6,4,1), c(3,2))
-#' st
-#' unclass(st)
+#' sp <- skewpartition(c(6,4,1), c(3,2))
+#' sp
+#' unclass(sp)
 #' as.skewpartition(list(c(6,4,1), c(3,2)))
 #' # a partition not given in increasing order is automatically sorted:
 #' skewpartition(c(4,6,1), c(3,2))
@@ -86,5 +86,5 @@ as.skewpartition.list <- function(x){
 #' @rdname skewpartition
 #' @export
 print.skewpartition <- function(x){
-  print(.showSkewPartition(x))
+  print(.showSkewPartition(x$outer, x$inner))
 }

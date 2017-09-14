@@ -98,22 +98,6 @@ showSkewPartitionR outer inner result = do
 
 --- ~# Skew Tableaux #~ ---
 
-isValidSkewTableau :: SkewTableau a -> Bool
-isValidSkewTableau = isValidSkewPartition . skewTableauShape
-
-foreign export ccall isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
-isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
-isValidSkewTableauR rlist l result = do
-  skewtableau <- rListToSkewTableau rlist l
-  poke result $ bool 0 1 (isValidSkewTableau skewtableau)
-
-foreign export ccall skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
-skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
-skewTableauShapeR rlist l result = do
-  skewTableau <- rListToSkewTableau rlist l
-  let shape = skewTableauShape skewTableau
-  (>>=) (skewPartitionToR shape) (poke result)
-
 someSexpToSint :: SomeSEXP s -> SEXP s R.Int
 someSexpToSint someSexpToSint = cast sing someSexpToSint
 
@@ -131,6 +115,22 @@ rListToSkewTableau rlist l = do
   l <- peek l
   rlist <- peekArray (fromIntegral l :: Int) rlist
   fmap SkewTableau (mapM rListToSkewTableauRow rlist)
+
+isValidSkewTableau :: SkewTableau a -> Bool
+isValidSkewTableau = isValidSkewPartition . skewTableauShape
+
+foreign export ccall isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
+isValidSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CInt -> IO ()
+isValidSkewTableauR rlist l result = do
+  skewtableau <- rListToSkewTableau rlist l
+  poke result $ bool 0 1 (isValidSkewTableau skewtableau)
+
+foreign export ccall skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
+skewTableauShapeR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr (SEXP s R.Vector) -> IO ()
+skewTableauShapeR rlist l result = do
+  skewTableau <- rListToSkewTableau rlist l
+  let shape = skewTableauShape skewTableau
+  (>>=) (skewPartitionToR shape) (poke result)
 
 skewTableauRowToR :: (Int, [Int]) -> IO (SEXP s R.Vector)
 skewTableauRowToR (_offset, _entries) = do
@@ -161,3 +161,14 @@ asciiSkewTableauR :: Ptr (SEXP s R.Vector) -> Ptr CInt -> Ptr CString -> IO ()
 asciiSkewTableauR rlist l result = do
   skewTableau <- rListToSkewTableau rlist l
   (>>=) (newCString $ show (asciiSkewTableau skewTableau)) (poke result)
+
+foreign export ccall semiStandardSkewTableauxR :: Ptr CInt -> Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Vector) -> IO ()
+semiStandardSkewTableauxR :: Ptr CInt -> Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Vector) -> IO ()
+semiStandardSkewTableauxR n outer inner result = do
+  n <- peek n
+  outer <- importPartition outer
+  inner <- importPartition inner
+  let skewpartition = mkSkewPartition (outer, inner)
+  let _tableaux = semiStandardSkewTableaux (fromIntegral n :: Int) skewpartition
+  tableaux <- mapM skewTableautoR _tableaux
+  (>>=) (mkProtectedSEXPVectorIO sing tableaux) (poke result)

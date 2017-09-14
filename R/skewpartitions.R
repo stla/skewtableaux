@@ -1,6 +1,6 @@
-.isValidSkewPartition <- function(outer, inner){
+.isValidSkewPartition <- function(skewpart){
   .C("isValidSkewPartitionR", outer=list(skewpart[[1]]), inner=list(skewpart[[2]]),
-   result=0L)$result
+     result=0L)$result
 }
 .showSkewPartition <- function(outer, inner){
   .C("showSkewPartitionR", outer=list(outer), inner=list(inner),

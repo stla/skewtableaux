@@ -14,6 +14,11 @@
   .C("skewTableauShapeR", rlist=skewtab, l=length(skewtab),
      result=list(0L))$result[[1L]]
 }
+.semiStandardSkewTableaux <- function(n, outer, inner){
+  .C("semiStandardSkewTableauxR", n=n, outer=list(outer), inner=list(inner),
+     result=list(0L))$result[[1L]]
+}
+
 
 #' Dual skew tableau
 #'
@@ -63,4 +68,33 @@ skewTableauShape <- function(skewtab){
   }else{
     stop("Invalid skew tableau.")
   }
+}
+
+#' Semistandard skew tableaux
+#'
+#' List of semistandard skew tableaux of a given shape and filled with integers in \code{1:n}.
+#'
+#' @param n integer
+#' @param skewpart a skewpartition (\code{\link{skewpartition}})
+#'
+#' @return A list of skew tableaux.
+#' @export
+#'
+#' @examples
+#' skewpart <- skewpartition(c(3,2), c(1,1))
+#' semiStandardSkewTableaux(3, skewpart)
+semiStandardSkewTableaux <- function(n, skewpart){ # quid si skewpart invalid ?
+  if(!is.skewpartition(skewpart)){
+    skewpart <- as.skewpartition(skewpart)
+  }
+  if(.isValidSkewPartition(skewpart)==0L){
+    stop("`skewpart` must be a valid skew partition.")
+  }
+  out <- .semiStandardSkewTableaux(as.integer(n), skewpart$outer, skewpart$inner)
+  out <- lapply(out, function(skewtab){
+    class(skewtab) <- "skewtableau"
+    attr(skewtab, "valid") <- TRUE
+    skewtab
+  })
+  out
 }
