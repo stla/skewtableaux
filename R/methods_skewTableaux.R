@@ -1,3 +1,4 @@
+#' @importFrom purrr map_lgl map_int
 checkSkewTableau <- function(rlist){
   test <- is.list(rlist)
   test <- test && all(purrr::map_lgl(rlist, is.list))
@@ -14,7 +15,7 @@ checkSkewTableau <- function(rlist){
 #' @name skewtableau
 #' @rdname skewtableau
 #' @title The \code{skewtableau} objects
-#' @description Creates and print skewtableau objects
+#' @description Creates and print \code{skewtableau} objects
 #'
 #' @param ... a series of lists, each of the form \code{list(offset, entries)} where
 #' \code{offset} is an integer number and \code{entries} is a vector of integer numbers.

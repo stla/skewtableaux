@@ -6,6 +6,14 @@
   .C("dualSkewTableauR", rlist=skewtab, l=length(skewtab),
      result=list(0L))$result[[1L]]
 }
+.isValidSkewTableau <- function(skewtab){
+  .C("isValidSkewTableauR", rlist=skewtab, l=length(skewtab),
+     result=0L)$result
+}
+.skewTableauShape <- function(skewtab){ # skewtab must be valid
+  .C("skewTableauShapeR", rlist=skewtab, l=length(skewtab),
+     result=list(0L))$result[[1L]]
+}
 
 #' Dual skew tableau
 #'
