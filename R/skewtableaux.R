@@ -18,7 +18,9 @@
   .C("semiStandardSkewTableauxR", n=n, outer=list(outer), inner=list(inner),
      result=list(0L))$result[[1L]]
 }
-
+.asciiSkewTableau <- function(skewtab){
+  .C("asciiSkewTableauR", rlist=skewtab, l=length(skewtab), result="")$result
+}
 
 #' Dual skew tableau
 #'
@@ -97,4 +99,23 @@ semiStandardSkewTableaux <- function(n, skewpart){ # quid si skewpart invalid ?
     skewtab
   })
   out
+}
+
+#' ASCII representation of a skew tableau
+#'
+#' ASCII representation of a skew tableau.
+#'
+#' @param skewtab an object of class \code{\link{skewtableau}} or that can be coerced to a \code{\link{skewtableau}}
+#'
+#' @return A character string.
+#' @export
+#'
+#' @examples
+#' skewtab <- skewtableau(list(3,c(1,1)), list(1,c(2,3)))
+#' cat(asciiSkewTableau(skewtab))
+asciiSkewTableau <- function(skewtab){
+  if(!is.skewtableau(skewtab)){
+    skewtab <- as.skewtableau(skewtab)
+  }
+  .asciiSkewTableau(skewtab)
 }

@@ -87,7 +87,7 @@ skewPartitionToR skewpartition = do
 
 showSkewPartition :: Partition -> Partition -> String
 showSkewPartition outer inner =
-  "SkewPartition " ++ (show $ fromPartition outer) ++ " \\ " ++ (show $ fromPartition inner)
+  "SkewPartition " ++ (show $ fromPartition outer) ++ " / " ++ (show $ fromPartition inner)
 
 foreign export ccall showSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CString -> IO ()
 showSkewPartitionR :: Ptr (SEXP s R.Int) -> Ptr (SEXP s R.Int) -> Ptr CString -> IO ()
@@ -101,7 +101,7 @@ showSkewPartitionR outer inner result = do
 someSexpToSint :: SomeSEXP s -> SEXP s R.Int
 someSexpToSint someSexpToSint = cast sing someSexpToSint
 
--- list(list(2L,c(2L,3L)), list(2L,c(2L,3L)))
+-- rlist: list(list(2L,c(2L,3L)), list(2L,c(2L,3L)), list(offset, entries))
 rListToSkewTableauRow :: SEXP s R.Vector -> IO (Int, [Int])
 rListToSkewTableauRow row = do
   _offset <- indexVector row 0
